@@ -44,8 +44,9 @@ Each row represents a unique SKU (Stock Keeping Unit) for a product. Duplicate p
 Here’s a step-by-step breakdown of what I did in this project:
 
 ### 1. Database & Table Creation
-We start by creating a SQL table with appropriate data types:
+I started by creating a SQL table with appropriate data types:
 
+###  >>> Here is the code:
 ```sql
 CREATE TABLE zepto (
   sku_id SERIAL PRIMARY KEY,
@@ -63,8 +64,7 @@ CREATE TABLE zepto (
 
 ### 2. Data Import
 - Loaded CSV using pgAdmin's import feature.
-
- - If you're not able to use the import feature, write this code instead:
+- If you're not able to use the import feature, write this code instead:
 ```sql
    \copy zepto(category,name,mrp,discountPercent,availableQuantity,
             discountedSellingPrice,weightInGms,outOfStock,quantity)
@@ -74,23 +74,87 @@ CREATE TABLE zepto (
 
 ### 3. 🔍 Data Exploration
 - Counted the total number of records in the dataset
-
 - Viewed a sample of the dataset to understand structure and content
-
 - Checked for null values across all columns
-
 - Identified distinct product categories available in the dataset
-
 - Compared in-stock vs out-of-stock product counts
-
 - Detected products present multiple times, representing different SKUs
+
+###  >>> Here is the code:
+
+```sql
+--data exploration
+
+--count of rows
+select count(*) from zepto;
+
+--sample data
+SELECT * FROM zepto
+LIMIT 10;
+
+--null values
+SELECT * FROM zepto
+WHERE name IS NULL
+OR
+category IS NULL
+OR
+mrp IS NULL
+OR
+discountPercent IS NULL
+OR
+discountedSellingPrice IS NULL
+OR
+weightInGms IS NULL
+OR
+availableQuantity IS NULL
+OR
+outOfStock IS NULL
+OR
+quantity IS NULL;
+
+--different product categories
+SELECT DISTINCT category
+FROM zepto
+ORDER BY category;
+
+--products in stock vs out of stock
+SELECT outOfStock, COUNT(sku_id)
+FROM zepto
+GROUP BY outOfStock;
+
+--product names present multiple times
+SELECT name, COUNT(sku_id) AS "Number of SKUs"
+FROM zepto
+GROUP BY name
+HAVING count(sku_id) > 1
+ORDER BY count(sku_id) DESC;
+```
 
 ### 4. 🧹 Data Cleaning
 - Identified and removed rows where MRP or discounted selling price was zero
-
 - Converted mrp and discountedSellingPrice from paise to rupees for consistency and readability
-  
-### 5. 📊 Business Insights
+
+###  >>> Here is the code:
+
+```sql
+--data cleaning
+
+--products with price = 0
+SELECT * FROM zepto
+WHERE mrp = 0 OR discountedSellingPrice = 0;
+
+DELETE FROM zepto
+WHERE mrp = 0;
+
+--convert paise to rupees
+UPDATE zepto
+SET mrp = mrp / 100.0,
+discountedSellingPrice = discountedSellingPrice / 100.0;
+
+SELECT mrp, discountedSellingPrice FROM zepto;
+```
+
+### 5. 📊 Extracted Business Insights From Raw Data
 - Found top 10 best-value products based on discount percentage
 
 - Identified high-MRP products that are currently out of stock
